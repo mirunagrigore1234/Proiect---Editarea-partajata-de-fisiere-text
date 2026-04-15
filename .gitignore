@@ -2,6 +2,9 @@ bin/
 *.class
 .classpath
 .project
+
+server_files/
+!server_files/
 server_files/*
-server_files/.gitkeep
-server_files/example.txt
+!server_files/.gitkeep
+!server_files/example.txt
