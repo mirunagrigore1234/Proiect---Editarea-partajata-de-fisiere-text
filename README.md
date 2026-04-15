@@ -125,7 +125,7 @@ java client.ClientMain
 - Nu există versionare avansată
 - Se trimite întreg conținutul fișierului (nu diff)
   
-## Conceopte utilizate:
+## Concepte utilizate:
 - programare concurentă
 - comunicare client-server
 - sincronizare și consistență
