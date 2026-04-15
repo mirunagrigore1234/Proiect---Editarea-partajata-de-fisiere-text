@@ -27,9 +27,17 @@ public class ClientMain {
             List<String> buffer = new ArrayList<>();
 
             boolean[] editAllowed = new boolean[1];
-            editAllowed[0] = false;
+            boolean[] editResponseReceived = new boolean[1];
+            
+            Object editLock = new Object();
+            boolean[] fileLoaded = new boolean[1];
 
-            new Thread(new ServerListener(in, buffer, editAllowed)).start();
+            new Thread(new ServerListener(
+                    in, out, buffer,
+                    editAllowed, editResponseReceived,
+                    fileLoaded,   // 👈 ADĂUGAT
+                    editLock
+            )).start();
 
             boolean isEditing = false;
             String editingFile = null;
@@ -93,8 +101,7 @@ public class ClientMain {
                     }
 
                     if (line.startsWith("APPEND ")) {
-                        String text = line.substring(7);
-                        buffer.add(text);
+                        buffer.add(line.substring(7));
                         showBuffer(buffer);
                         continue;
                     }
@@ -103,7 +110,7 @@ public class ClientMain {
                         String[] parts = line.split(" ", 4);
 
                         if (parts.length < 4) {
-                            System.out.println("[ERROR] Folosește: REPLACEWORD numar cuvant_vechi cuvant_nou");
+                            System.out.println("[ERROR] Folosește: REPLACEWORD numar vechi nou");
                             continue;
                         }
 
@@ -115,17 +122,16 @@ public class ClientMain {
                                 continue;
                             }
 
-                            String currentLine = buffer.get(index);
-                            String updatedLine = currentLine.replaceFirst(
+                            String updated = buffer.get(index).replaceFirst(
                                     "\\b" + Pattern.quote(parts[2]) + "\\b",
                                     parts[3]
                             );
 
-                            buffer.set(index, updatedLine);
+                            buffer.set(index, updated);
                             showBuffer(buffer);
 
                         } catch (NumberFormatException e) {
-                            System.out.println("[ERROR] Număr de linie invalid");
+                            System.out.println("[ERROR] Număr invalid");
                         }
 
                         continue;
@@ -151,7 +157,7 @@ public class ClientMain {
                             showBuffer(buffer);
 
                         } catch (NumberFormatException e) {
-                            System.out.println("[ERROR] Număr de linie invalid");
+                            System.out.println("[ERROR] Număr invalid");
                         }
 
                         continue;
@@ -173,32 +179,24 @@ public class ClientMain {
                                 continue;
                             }
 
-                            String currentLine = buffer.get(index);
-                            String updatedLine = currentLine.replaceFirst(
-                                    "\\b" + Pattern.quote(parts[2]) + "\\b", "");
+                            String updated = buffer.get(index)
+                                    .replaceFirst("\\b" + Pattern.quote(parts[2]) + "\\b", "")
+                                    .replaceAll("\\s+", " ")
+                                    .trim();
 
-                            updatedLine = updatedLine.replaceAll("\\s+", " ").trim();
-
-                            buffer.set(index, updatedLine);
+                            buffer.set(index, updated);
                             showBuffer(buffer);
 
                         } catch (NumberFormatException e) {
-                            System.out.println("[ERROR] Număr de linie invalid");
+                            System.out.println("[ERROR] Număr invalid");
                         }
 
                         continue;
                     }
 
                     if (line.startsWith("DELETE ")) {
-                        String[] parts = line.split(" ", 2);
-
-                        if (parts.length < 2) {
-                            System.out.println("[ERROR] Folosește: DELETE numar");
-                            continue;
-                        }
-
                         try {
-                            int index = Integer.parseInt(parts[1]) - 1;
+                            int index = Integer.parseInt(line.split(" ")[1]) - 1;
 
                             if (index < 0 || index >= buffer.size()) {
                                 System.out.println("[ERROR] Linie inexistentă");
@@ -208,8 +206,8 @@ public class ClientMain {
                             buffer.remove(index);
                             showBuffer(buffer);
 
-                        } catch (NumberFormatException e) {
-                            System.out.println("[ERROR] Număr de linie invalid");
+                        } catch (Exception e) {
+                            System.out.println("[ERROR] Număr invalid");
                         }
 
                         continue;
@@ -235,14 +233,13 @@ public class ClientMain {
                             showBuffer(buffer);
 
                         } catch (NumberFormatException e) {
-                            System.out.println("[ERROR] Număr de linie invalid");
+                            System.out.println("[ERROR] Număr invalid");
                         }
 
                         continue;
                     }
 
-                    System.out.println("[ERROR] Comandă invalidă în edit mode");
-                    System.out.println("Comenzi: APPEND text, APPENDLINE n text, REPLACE n text, REPLACEWORD n vechi nou, DELETE n, DELETEWORD n cuvant, INSERT n text, SAVE, CANCEL");
+                    System.out.println("[ERROR] Comandă invalidă");
                     continue;
                 }
 
@@ -253,21 +250,29 @@ public class ClientMain {
 
                 if (cmd.startsWith("EDIT ")) {
 
-                    editAllowed[0] = false;
+                    synchronized (editLock) {
+                        editAllowed[0] = false;
+                        editResponseReceived[0] = false;
+                        fileLoaded[0] = false;
 
-                    out.println(cmd);
+                        out.println(cmd);
 
-                    Thread.sleep(200);
+                        while (!editResponseReceived[0]) {
+                            editLock.wait();
+                        }
 
-                    if (!editAllowed[0]) {
-                        continue;
+                        if (!editAllowed[0]) {
+                            continue;
+                        }
+                        while (!fileLoaded[0]) {
+                            editLock.wait();
+                        }
                     }
 
                     editingFile = cmd.split(" ", 2)[1];
                     isEditing = true;
 
                     System.out.println("[SERVER] Editing mode pentru " + editingFile);
-                    System.out.println("Comenzi: APPEND text, APPENDLINE n text, REPLACE n text, REPLACEWORD n vechi nou, DELETE n, DELETEWORD n cuvant, INSERT n text, SAVE, CANCEL");
                     showBuffer(buffer);
 
                     continue;

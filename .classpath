@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="Editarea_partajata_de_fisiere_text/src"/>
+	<classpathentry kind="output" path="Editarea_partajata_de_fisiere_text/bin"/>
+</classpath>

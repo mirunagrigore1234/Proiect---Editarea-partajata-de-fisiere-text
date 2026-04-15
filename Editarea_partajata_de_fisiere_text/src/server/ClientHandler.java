@@ -160,8 +160,8 @@ public class ClientHandler implements Runnable {
     // ================= SAVE =================
 
     private void handleSave(String file) throws IOException {
-    	
-    	System.out.println(username + " a cerut SAVE pentru " + file);
+
+        System.out.println(username + " a cerut SAVE pentru " + file);
 
         if (!FileManager.isLocked(file)) {
             send("ERROR: fisierul nu este in editare");
@@ -184,14 +184,28 @@ public class ClientHandler implements Runnable {
         }
 
         w.close();
-        
+
         System.out.println(username + " a salvat fisierul " + file);
-        System.out.println(file + " deblocat automat dupa SAVE");
 
         FileManager.unlock(file);
         editingFile = null;
 
         send("SUCCESS: fisier salvat");
+
+        for (ClientHandler c : ServerMain.clients) {
+            if (c != this) {
+                c.send("CONTENT_BEGIN");
+
+                try (BufferedReader r = new BufferedReader(new FileReader(f))) {
+                    String l;
+                    while ((l = r.readLine()) != null) {
+                        c.send(l);
+                    }
+                }
+
+                c.send("CONTENT_END");
+            }
+        }
 
         ServerMain.broadcast("INFO: " + file + " a fost actualizat", this);
         ServerMain.broadcast("INFO: " + file + " a fost deblocat", this);

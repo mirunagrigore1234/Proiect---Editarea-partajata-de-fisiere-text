@@ -12,12 +12,13 @@ public class ServerMain {
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(5000)) {
             System.out.println("Server pornit pe port 5000...");
+            
+            new Thread(new FileWatcher("server_files")).start();
 
             while (true) {
                 Socket socket = serverSocket.accept();
                 ClientHandler client = new ClientHandler(socket);
 
-                // 🔥 DOAR aici adăugăm clientul
                 clients.add(client);
 
                 new Thread(client).start();
