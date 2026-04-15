@@ -146,4 +146,3 @@ Proiect realizat în cadrul unui curs universitar, având ca obiectiv implementa
 Lucrarea evidențiază concepte precum programarea concurentă, comunicarea prin socket-uri, sincronizarea accesului la resurse și gestionarea consistenței între mai mulți clienți.
 
 Proiectul are un scop educațional și este inclus în portofoliu.
-## 🗂️ Structura proiectului```
