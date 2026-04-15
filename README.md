@@ -1,12 +1,13 @@
 # Editarea Partajată de Fișiere Text
 
 ## Descriere
-Această aplicație implementează un sistem distribuit de tip **client-server** pentru editarea partajată a fișierelor text.
+O aplicație distribuită de tip client-server care permite mai multor utilizatori să vizualizeze și să editeze colaborativ fișiere text, asigurând acces exclusiv prin mecanisme de blocare. Aplicația este implementată utilizând Java, socket-uri TCP și programare concurentă (multi-threading).
 
-Serverul gestionează un director cu fișiere text, iar mai mulți clienți se pot conecta pentru a:
+Serverul gestionează un director de fișiere text, iar mai mulți clienți se pot conecta simultan pentru a:
+
 - vizualiza fișiere
-- prelua un fișier în editare
-- salva modificări
+- prelua un fișier pentru editare
+- salva modificările realizate
 
 La un moment dat, **un singur client poate edita un fișier**.
 
@@ -18,6 +19,19 @@ La un moment dat, **un singur client poate edita un fișier**.
 - Concurență (threads)
 - I/O pentru fișiere
 - Docker (pentru rularea serverului)
+
+---
+
+## Arhitectură
+
+- Serverul gestionează:
+  - conexiunile clienților (prin thread-uri)
+  - starea fișierelor (liber / în editare)
+- Clienții:
+  - trimit comenzi către server
+  - ascultă actualizări în mod asincron
+
+Comunicarea se realizează prin socket-uri TCP, utilizând un protocol text-based simplu, bazat pe comenzi trimise de client și procesate de server.
 
 ---
 
@@ -68,10 +82,53 @@ Dacă fișierul este deja în editare → cererea este refuzată
 
 ---
 
-## Concurență și sincronizare
-- Server concurent (multi-threaded)
-- Acces exclusiv la editare
-- Eliberare automată dacă clientul se deconectează
+## Exemplu utilizare
+
+Client1:
+EDIT notite.txt
+[SERVER] editare permisa
+[SERVER] Editing mode pentru notite.txt
+
+Client2:
+EDIT notite.txt
+> [ERROR] fisierul este deja editat de miruna
+
+---
+
+## Protocol de comunicare
+
+Comenzi disponibile:
+
+- LIST
+- VIEW <filename>
+- EDIT <filename>
+- SAVE <filename>
+- CANCEL (eliberează fișierul)
+
+---
+
+## Rulare aplicație
+
+### 1. Pornește serverul
+
+```bash
+java server.ServerMain
+```
+
+#### 2. Pornește clienți (în terminale separate)
+
+```bash
+java client.ClientMain
+```
+
+## Rulare cu Docker
+
+Pentru a construi și rula serverul folosind Docker:
+
+```bash
+docker build -t text-editor-server .
+docker run -p 1234:1234 text-editor-server
+```
 
 ---
 
@@ -97,19 +154,12 @@ README.md
 ```
 ---
 
-## Rulare aplicație
+## Concurență și sincronizare
+- Server concurent (multi-threaded)
+- Acces exclusiv la editare
+- Eliberare automată dacă clientul se deconectează
 
-### 1. Pornește serverul
-
-```bash
-java server.ServerMain
-```
-
-#### 2. Pornește clienți (în terminale separate)
-
-```bash
-java client.ClientMain
-```
+---
 
 ## Scenarii testate
 - Conectarea mai multor clienți
@@ -120,16 +170,33 @@ java client.ClientMain
 - Eliberare fișier la renunțare
 - Deconectare forțată și eliberare automată
 
+---
+
 ## Limitări
-- Nu există interfață grafică (CLI only)
-- Nu există versionare avansată
-- Se trimite întreg conținutul fișierului (nu diff)
+
+- Nu există interfață grafică (doar CLI)
+- Nu există un mecanism de versionare avansată
+- Se transmite întreg conținutul fișierului (nu pe bază de diferențe – diff)
+
+---
+
+## Posibile îmbunătățiri
+
+- Dezvoltarea unei interfețe grafice (JavaFX / Web)
+- Implementarea actualizărilor pe bază de diferențe (diff), în locul transferului complet al fișierelor
+- Introducerea unui mecanism de versionare a fișierelor
+- Implementarea unui sistem de autentificare a utilizatorilor
+- Dezvoltarea unor strategii de gestionare și rezolvare a conflictelor
+
+---
   
 ## Concepte utilizate:
 - programare concurentă
 - comunicare client-server
 - sincronizare și consistență
 - lucrul cu fișiere
+
+---
   
 ## Echipa
 
@@ -138,6 +205,8 @@ java client.ClientMain
 - Marica Maria Daria
 
 **Profesor coordonator:** Ilie-Nemedi Iulian
+
+---
 
 ## Note
 
