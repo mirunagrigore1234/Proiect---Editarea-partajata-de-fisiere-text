@@ -1,140 +1,129 @@
-# Editarea Partajată de Fișiere Text
+# Shared Text File Editing
 
-## Descriere
-O aplicație distribuită de tip client-server care permite mai multor utilizatori să vizualizeze și să editeze colaborativ fișiere text, asigurând acces exclusiv prin mecanisme de blocare. Aplicația este implementată utilizând Java, socket-uri TCP și programare concurentă (multi-threading).
+## Description
+A distributed client-server application that allows multiple users to collaboratively view and edit text files, ensuring exclusive access through locking mechanisms.
 
-Serverul gestionează un director de fișiere text, iar mai mulți clienți se pot conecta simultan pentru a:
+The application is implemented using Java, TCP sockets, and concurrent programming (multi-threading).
 
-- vizualiza fișiere
-- prelua un fișier pentru editare
-- salva modificările realizate
+The server manages a directory of text files, and multiple clients can connect simultaneously to:
+- view files
+- acquire a file for editing
+- save their changes
 
-La un moment dat, **un singur client poate edita un fișier**.
+At any given time, only one client can edit a file.
 
 ---
 
-## Tehnologii utilizate
+## Technologies Used
 - Java
-- Sockets (TCP)
-- Concurență (threads)
-- I/O pentru fișiere
-- Docker (pentru rularea serverului)
+- TCP Sockets
+- Concurrency (threads)
+- File I/O
+- Docker (for running the server)
 
 ---
 
-## Arhitectură
+## Architecture
 
-- Serverul gestionează:
-  - conexiunile clienților (prin thread-uri)
-  - starea fișierelor (liber / în editare)
-- Clienții:
-  - trimit comenzi către server
-  - ascultă actualizări în mod asincron
+### Server
+- Manages client connections (multi-threaded)
+- Maintains file states (available / being edited)
 
-Comunicarea se realizează prin socket-uri TCP, utilizând un protocol text-based simplu, bazat pe comenzi trimise de client și procesate de server.
+### Clients
+- Send commands to the server
+- Listen for updates asynchronously
 
----
-
-## Funcționalități
-
-### Conectare
-- Clientul se autentifică printr-un nume
-- Primește lista fișierelor disponibile + starea lor:
-  - liber
-  - în editare (și de către cine)
+Communication is done via TCP sockets using a simple text-based protocol.
 
 ---
 
-### Vizualizare fișier
-- Orice client poate vizualiza conținutul unui fișier
-- Dacă fișierul este editat → vizualizare read-only
+## Features
+
+### Connection
+- Client authenticates using a username
+- Receives list of files and their status:
+  - available
+  - being edited (and by whom)
+
+### File Viewing
+- Any client can view file content
+- If the file is being edited → read-only mode
+
+### File Editing
+- A client can acquire a file only if it is available
+- Server:
+  - marks file as “being edited”
+  - notifies all clients
+
+- If already being edited → request is rejected
+
+### Saving Changes
+- Client sends updated version
+- Server:
+  - saves to disk
+  - notifies all clients
+  - sends updated content
+
+### Cancel Editing
+- Client releases the file
+- Server notifies all clients
+
+### Server File Management
+- Add file → clients notified
+- Delete file → clients receive updated list
 
 ---
 
-### Editare fișier
-- Clientul poate prelua un fișier dacă este liber
-- Serverul:
-  - marchează fișierul ca „în editare”
-  - notifică ceilalți clienți
+## Usage Example
 
-Dacă fișierul este deja în editare → cererea este refuzată
 
----
+Client1: EDIT notes.txt
+[SERVER] editing allowed
+[SERVER] Editing mode enabled for notes.txt
 
-### Salvare modificări
-- Clientul trimite noua versiune
-- Serverul:
-  - salvează pe disc
-  - notifică ceilalți clienți
-  - trimite conținutul actualizat
+Client2: EDIT notes.txt
+[ERROR] file is already being edited by miruna
+
 
 ---
 
-### Renunțare la editare
-- Clientul eliberează fișierul
-- Serverul notifică toți clienții
+## Communication Protocol
 
----
-
-### Gestionare fișiere server
-- Adăugare fișier → notificare către clienți
-- Ștergere fișier → actualizare listă la clienți
-
----
-
-## Exemplu utilizare
-
-Client1:
-EDIT notite.txt
-[SERVER] editare permisa
-[SERVER] Editing mode pentru notite.txt
-
-Client2:
-EDIT notite.txt
-> [ERROR] fisierul este deja editat de miruna
-
----
-
-## Protocol de comunicare
-
-Comenzi disponibile:
-
+Available commands:
 - LIST
-- VIEW <filename>
-- EDIT <filename>
-- SAVE <filename>
-- CANCEL (eliberează fișierul)
+- VIEW
+- EDIT
+- SAVE
+- CANCEL
 
 ---
 
-## Rulare aplicație
+## Running the Application
 
-### 1. Pornește serverul
+### 1. Start the server
 
-```bash
 java server.ServerMain
-```
 
-#### 2. Pornește clienți (în terminale separate)
 
-```bash
+### 2. Start clients (in separate terminals)
+
 java client.ClientMain
-```
 
-## Rulare cu Docker
 
-Pentru a construi și rula serverul folosind Docker:
+---
 
-```bash
+## Running with Docker
+
+
 docker build -t text-editor-server .
 docker run -p 1234:1234 text-editor-server
-```
+
 
 ---
 
-## Structura proiectului
+## Project Structure
 
-```
+text```
 src/
 ├── client/
 │ ├── ClientMain.java
@@ -152,66 +141,70 @@ server_files/
 .gitignore
 README.md
 ```
----
-
-## Concurență și sincronizare
-- Server concurent (multi-threaded)
-- Acces exclusiv la editare
-- Eliberare automată dacă clientul se deconectează
 
 ---
 
-## Scenarii testate
-- Conectarea mai multor clienți
-- Vizualizarea simultană a unui fișier
-- Editare exclusivă (un singur client)
-- Refuz la editare concurentă
-- Salvare și propagare modificări
-- Eliberare fișier la renunțare
-- Deconectare forțată și eliberare automată
+## Concurrency and Synchronization
+
+- Multi-threaded server
+- Exclusive access for editing
+- Automatic release if a client disconnects
 
 ---
 
-## Limitări
+## Tested Scenarios
 
-- Nu există interfață grafică (doar CLI)
-- Nu există un mecanism de versionare avansată
-- Se transmite întreg conținutul fișierului (nu pe bază de diferențe – diff)
+- Multiple client connections
+- Simultaneous file viewing
+- Exclusive editing (single client)
+- Rejection of concurrent edit attempts
+- Saving and update propagation
+- File release after editing
+- Forced disconnection and automatic release
+
+---
+
+## Limitations
+
+- No graphical user interface (CLI only)
+- No advanced versioning system
+- Full file content is transmitted (no diff-based updates)
 
 ---
 
-## Posibile îmbunătățiri
+## Possible Improvements
 
-- Dezvoltarea unei interfețe grafice (JavaFX / Web)
-- Implementarea actualizărilor pe bază de diferențe (diff), în locul transferului complet al fișierelor
-- Introducerea unui mecanism de versionare a fișierelor
-- Implementarea unui sistem de autentificare a utilizatorilor
-- Dezvoltarea unor strategii de gestionare și rezolvare a conflictelor
-
----
-  
-## Concepte utilizate:
-- programare concurentă
-- comunicare client-server
-- sincronizare și consistență
-- lucrul cu fișiere
+- Add a graphical interface (JavaFX / Web)
+- Implement diff-based updates
+- Add file versioning
+- Introduce user authentication
+- Implement conflict resolution strategies
 
 ---
-  
-## Echipa
 
-- Ana-Miruna Grigore  
+## Concepts Used
+
+- Concurrent programming
+- Client-server communication
+- Synchronization and consistency
+- File handling
+
+---
+
+## Team
+
+- Ana-Miruna Grigore
 - Mara-Catinca Marinescu
 - Marica Maria Daria
 
-**Profesor coordonator:** Ilie-Nemedi Iulian
+**Supervisor:** Ilie-Nemedi Iulian
 
 ---
 
-## Note
+## Notes
 
-Proiect realizat în cadrul unui curs universitar, având ca obiectiv implementarea unei aplicații distribuite de tip client-server pentru editarea partajată a fișierelor text.
+This project was developed as part of a university course.
 
-Lucrarea evidențiază concepte precum programarea concurentă, comunicarea prin socket-uri, sincronizarea accesului la resurse și gestionarea consistenței între mai mulți clienți.
+It demonstrates concepts such as concurrent programming, socket-based communication, synchronization, and maintaining consistency across multiple clients.
 
-Proiectul are un scop educațional și este inclus în portofoliu.
+The project is intended for educational purposes and is part of a professional portfolio.
