@@ -35,7 +35,7 @@ public class ClientMain {
             new Thread(new ServerListener(
                     in, out, buffer,
                     editAllowed, editResponseReceived,
-                    fileLoaded,   // 👈 ADĂUGAT
+                    fileLoaded,   
                     editLock
             )).start();
 
@@ -66,7 +66,7 @@ public class ClientMain {
                     }
 
                     if (line.equalsIgnoreCase("CANCEL")) {
-                        out.println("RENUNTA " + editingFile);
+                        out.println("CANCEL " + editingFile);
 
                         buffer.clear();
                         isEditing = false;
@@ -78,7 +78,7 @@ public class ClientMain {
                         String[] parts = line.split(" ", 3);
 
                         if (parts.length < 3) {
-                            System.out.println("[ERROR] Folosește: APPENDLINE numar text");
+                            System.out.println("[ERROR] Usage: APPENDLINE line_number text");
                             continue;
                         }
 
@@ -86,7 +86,7 @@ public class ClientMain {
                             int index = Integer.parseInt(parts[1]) - 1;
 
                             if (index < 0 || index >= buffer.size()) {
-                                System.out.println("[ERROR] Linie inexistentă");
+                                System.out.println("[ERROR] Line does not exist");
                                 continue;
                             }
 
@@ -94,7 +94,7 @@ public class ClientMain {
                             showBuffer(buffer);
 
                         } catch (NumberFormatException e) {
-                            System.out.println("[ERROR] Număr invalid");
+                            System.out.println("[ERROR] Invalid number");
                         }
 
                         continue;
@@ -110,7 +110,7 @@ public class ClientMain {
                         String[] parts = line.split(" ", 4);
 
                         if (parts.length < 4) {
-                            System.out.println("[ERROR] Folosește: REPLACEWORD numar vechi nou");
+                            System.out.println("[ERROR] Usage: REPLACEWORD line_number old_word new_word");
                             continue;
                         }
 
@@ -118,7 +118,7 @@ public class ClientMain {
                             int index = Integer.parseInt(parts[1]) - 1;
 
                             if (index < 0 || index >= buffer.size()) {
-                                System.out.println("[ERROR] Linie inexistentă");
+                                System.out.println("[ERROR] Line does not exist");
                                 continue;
                             }
 
@@ -131,7 +131,7 @@ public class ClientMain {
                             showBuffer(buffer);
 
                         } catch (NumberFormatException e) {
-                            System.out.println("[ERROR] Număr invalid");
+                            System.out.println("[ERROR] Invalid number");
                         }
 
                         continue;
@@ -141,7 +141,7 @@ public class ClientMain {
                         String[] parts = line.split(" ", 3);
 
                         if (parts.length < 3) {
-                            System.out.println("[ERROR] Folosește: REPLACE numar text");
+                            System.out.println("[ERROR] Usage: REPLACEWORD line_number old_word new_word");
                             continue;
                         }
 
@@ -149,7 +149,7 @@ public class ClientMain {
                             int index = Integer.parseInt(parts[1]) - 1;
 
                             if (index < 0 || index >= buffer.size()) {
-                                System.out.println("[ERROR] Linie inexistentă");
+                                System.out.println("[ERROR] Line does not exist");
                                 continue;
                             }
 
@@ -157,7 +157,7 @@ public class ClientMain {
                             showBuffer(buffer);
 
                         } catch (NumberFormatException e) {
-                            System.out.println("[ERROR] Număr invalid");
+                            System.out.println("[ERROR] Invalid number");
                         }
 
                         continue;
@@ -167,7 +167,7 @@ public class ClientMain {
                         String[] parts = line.split(" ", 3);
 
                         if (parts.length < 3) {
-                            System.out.println("[ERROR] Folosește: DELETEWORD numar cuvant");
+                            System.out.println("[ERROR] Usage: DELETEWORD line_number word");
                             continue;
                         }
 
@@ -175,7 +175,7 @@ public class ClientMain {
                             int index = Integer.parseInt(parts[1]) - 1;
 
                             if (index < 0 || index >= buffer.size()) {
-                                System.out.println("[ERROR] Linie inexistentă");
+                                System.out.println("[ERROR] Line does not exist");
                                 continue;
                             }
 
@@ -188,7 +188,7 @@ public class ClientMain {
                             showBuffer(buffer);
 
                         } catch (NumberFormatException e) {
-                            System.out.println("[ERROR] Număr invalid");
+                            System.out.println("[ERROR] Invalid number");
                         }
 
                         continue;
@@ -199,7 +199,7 @@ public class ClientMain {
                             int index = Integer.parseInt(line.split(" ")[1]) - 1;
 
                             if (index < 0 || index >= buffer.size()) {
-                                System.out.println("[ERROR] Linie inexistentă");
+                                System.out.println("[ERROR] Line does not exist");
                                 continue;
                             }
 
@@ -207,7 +207,7 @@ public class ClientMain {
                             showBuffer(buffer);
 
                         } catch (Exception e) {
-                            System.out.println("[ERROR] Număr invalid");
+                            System.out.println("[ERROR] Invalid number");
                         }
 
                         continue;
@@ -217,7 +217,7 @@ public class ClientMain {
                         String[] parts = line.split(" ", 3);
 
                         if (parts.length < 3) {
-                            System.out.println("[ERROR] Folosește: INSERT numar text");
+                            System.out.println("[ERROR] Usage: INSERT line_number text");
                             continue;
                         }
 
@@ -225,7 +225,7 @@ public class ClientMain {
                             int index = Integer.parseInt(parts[1]) - 1;
 
                             if (index < 0 || index > buffer.size()) {
-                                System.out.println("[ERROR] Poziție invalidă");
+                                System.out.println("[ERROR] Invalid position");
                                 continue;
                             }
 
@@ -233,13 +233,13 @@ public class ClientMain {
                             showBuffer(buffer);
 
                         } catch (NumberFormatException e) {
-                            System.out.println("[ERROR] Număr invalid");
+                            System.out.println("[ERROR] Invalid number");
                         }
 
                         continue;
                     }
 
-                    System.out.println("[ERROR] Comandă invalidă");
+                    System.out.println("[ERROR] Invalid command");
                     continue;
                 }
 
@@ -272,7 +272,7 @@ public class ClientMain {
                     editingFile = cmd.split(" ", 2)[1];
                     isEditing = true;
 
-                    System.out.println("[SERVER] Editing mode pentru " + editingFile);
+                    System.out.println("[SERVER] Editing mode for " + editingFile);
                     showBuffer(buffer);
 
                     continue;
@@ -288,7 +288,7 @@ public class ClientMain {
 
     private static void showBuffer(List<String> buffer) {
         if (buffer.isEmpty()) {
-            System.out.println("[SERVER] Fișier gol");
+            System.out.println("[SERVER] File is empty");
             return;
         }
 
