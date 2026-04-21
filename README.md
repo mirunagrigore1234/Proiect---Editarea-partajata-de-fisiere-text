@@ -76,14 +76,12 @@ Communication is done via TCP sockets using a simple text-based protocol.
 
 ## Usage Example
 
-```
 Client1: EDIT notes.txt
 [SERVER] editing allowed
 [SERVER] Editing mode enabled for notes.txt
 
 Client2: EDIT notes.txt
 [ERROR] file is already being edited by miruna
-```
 
 ---
 
