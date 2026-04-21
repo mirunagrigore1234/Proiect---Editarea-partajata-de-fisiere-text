@@ -27,14 +27,14 @@ public class ClientHandler implements Runnable {
 
             String line = in.readLine();
             if (line == null || !line.startsWith("CONNECT")) {
-                send("ERROR: trebuie CONNECT username");
+                send("ERROR: expected CONNECT <username>");
                 return;
             }
 
             username = line.split(" ", 2)[1];
-            System.out.println("Conectat: " + username);
+            System.out.println("Connected: " + username);
 
-            send("SUCCESS: conectare reusita");
+            send("SUCCESS: connected");
             sendFileList();
 
             while ((line = in.readLine()) != null) {
@@ -42,14 +42,14 @@ public class ClientHandler implements Runnable {
                 String[] parts = line.split(" ", 2);
                 String cmd = parts[0];
 
-                if (!cmd.equals("FILES") && parts.length < 2) {
-                    send("ERROR: comanda invalida");
+                if (!cmd.equals("LIST"") && parts.length < 2) {
+                    send("ERROR: invalid command");
                     continue;
                 }
 
                 switch (cmd) {
 
-                    case "FILES":
+                    case "LIST":
                         sendFileList();
                         break;
 
@@ -65,17 +65,17 @@ public class ClientHandler implements Runnable {
                         handleSave(parts[1]);
                         break;
 
-                    case "RENUNTA":
+                    case "CANCEL":
                         handleRenunta(parts[1]);
                         break;
 
                     default:
-                        send("ERROR: comanda necunoscuta");
+                        send("ERROR: unknown command");
                 }
             }
 
         } catch (Exception e) {
-            System.out.println("Deconectat: " + username);
+            System.out.println("Deconnected: " + username);
         } 
         
         finally {
@@ -85,10 +85,10 @@ public class ClientHandler implements Runnable {
             FileManager.unlockAllForUser(username);
             ServerMain.clients.remove(this);
 
-            ServerMain.broadcast("INFO: " + username + " s-a deconectat", this);
+            ServerMain.broadcast("INFO: " + username + " deconnected", this);
 
             if (unlockedFile != null) {
-                ServerMain.broadcast("INFO: " + unlockedFile + " a fost deblocat", this);
+                ServerMain.broadcast("INFO: " + unlockedFile + " has been unlocked", this);
             }
         }
     }
@@ -96,13 +96,13 @@ public class ClientHandler implements Runnable {
     // ================= FILE LIST =================
 
     private void sendFileList() {
-        send("FILES");
+        send("LIST");
 
         for (String f : FileManager.getFiles()) {
             if (FileManager.isLocked(f))
-                send(f + " IN_EDITARE " + FileManager.lockedBy(f));
+                send(f + " LOCKED " + FileManager.lockedBy(f));
             else
-                send(f + " LIBER");
+                send(f + " AVAILABLE");
         }
 
         send("END");
@@ -112,12 +112,12 @@ public class ClientHandler implements Runnable {
 
     private void sendFile(String name) throws IOException {
     	
-    	System.out.println(username + " a cerut VIEW pentru " + name);
+    	System.out.println(username + " requested VIEW for " + name);
 
         File file = FileManager.getFile(name);
 
         if (!file.exists()) {
-            send("ERROR: fisier inexistent");
+            send("ERROR: file not found");
             return;
         }
 
@@ -137,13 +137,13 @@ public class ClientHandler implements Runnable {
 
     private void handleEdit(String file) throws IOException {
     	
-    	System.out.println(username + " a cerut EDIT pentru " + file);
+    	System.out.println(username + " requested EDIT for " + file);
 
         synchronized (FileManager.class) {
 
             if (FileManager.isLocked(file)) {
-                send("ERROR: fisierul este deja editat de " + FileManager.lockedBy(file));
-                System.out.println(file + " blocat de " + username);
+                send("ERROR: file is already being edited by " + FileManager.lockedBy(file));
+                System.out.println(file + " locked by " + username);
                 return;
             }
 
@@ -151,25 +151,25 @@ public class ClientHandler implements Runnable {
             editingFile = file;
         }
 
-        send("SUCCESS: editare inceputa");
+        send("SUCCESS: editing started");
         sendFile(file);
 
-        ServerMain.broadcast("INFO: " + file + " a fost blocat de " + username, this);
+        ServerMain.broadcast("INFO: " + file + " was locked by " + username, this);
     }
 
     // ================= SAVE =================
 
     private void handleSave(String file) throws IOException {
 
-        System.out.println(username + " a cerut SAVE pentru " + file);
+        System.out.println(username + " requested SAVE for " + file);
 
         if (!FileManager.isLocked(file)) {
-            send("ERROR: fisierul nu este in editare");
+            send("ERROR: file is not in edit mode");
             return;
         }
 
         if (!FileManager.lockedBy(file).equals(username)) {
-            send("ERROR: nu ai dreptul sa salvezi acest fisier");
+            send("ERROR: you are not allowed to save this file");
             return;
         }
 
@@ -185,12 +185,12 @@ public class ClientHandler implements Runnable {
 
         w.close();
 
-        System.out.println(username + " a salvat fisierul " + file);
+        System.out.println(username + "  saved file " + file);
 
         FileManager.unlock(file);
         editingFile = null;
 
-        send("SUCCESS: fisier salvat");
+        send("SUCCESS: file saved");
 
         for (ClientHandler c : ServerMain.clients) {
             if (c != this) {
@@ -207,8 +207,8 @@ public class ClientHandler implements Runnable {
             }
         }
 
-        ServerMain.broadcast("INFO: " + file + " a fost actualizat", this);
-        ServerMain.broadcast("INFO: " + file + " a fost deblocat", this);
+        ServerMain.broadcast("INFO: " + file + " has been updated", this);
+        ServerMain.broadcast("INFO: " + file + "  has been unlocked", this);
     }
 
     // ================= RENUNTA =================
@@ -216,10 +216,10 @@ public class ClientHandler implements Runnable {
     private void handleRenunta(String file) {
     	
     	System.out.println(username + " a renuntat la editarea fisierului " + file);
-    	System.out.println(file + " deblocat");
+    	System.out.println(file + " unlocked");
 
         if (!FileManager.lockedBy(file).equals(username)) {
-            send("ERROR: nu ai dreptul sa renunti la acest fisier");
+            send("ERROR: you are not allowed to cancel this file");
             return;
         }
 
