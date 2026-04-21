@@ -76,14 +76,14 @@ Communication is done via TCP sockets using a simple text-based protocol.
 
 ## Usage Example
 
-
+```
 Client1: EDIT notes.txt
 [SERVER] editing allowed
 [SERVER] Editing mode enabled for notes.txt
 
 Client2: EDIT notes.txt
 [ERROR] file is already being edited by miruna
-
+```
 
 ---
 
@@ -101,29 +101,29 @@ Available commands:
 ## Running the Application
 
 ### 1. Start the server
-
+```
 java server.ServerMain
-
+```
 
 ### 2. Start clients (in separate terminals)
-
+```
 java client.ClientMain
-
+```
 
 ---
 
 ## Running with Docker
 
-
+```
 docker build -t text-editor-server .
 docker run -p 1234:1234 text-editor-server
-
+```
 
 ---
 
 ## Project Structure
 
-text```
+```
 src/
 ├── client/
 │ ├── ClientMain.java
