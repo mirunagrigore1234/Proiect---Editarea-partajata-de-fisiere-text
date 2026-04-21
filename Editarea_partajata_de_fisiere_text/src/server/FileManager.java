@@ -14,10 +14,11 @@ public class FileManager {
         List<String> list = new ArrayList<>();
         File folder = new File(DIRECTORY);
 
-        System.out.println("DIRECTORY = " + folder.getAbsolutePath());
-
+       System.out.println("DIRECTORY = " + folder.getAbsolutePath());
+		
+       
         if (!folder.exists()) {
-            System.out.println("Folder NU exista!");
+            System.out.println("Directory does not exist");
             folder.mkdirs();
         }
 
@@ -28,10 +29,10 @@ public class FileManager {
             return list;
         }
 
-        System.out.println("Total files gasite: " + files.length);
+        System.out.println("Total files found: " + files.length);
 
         for (File f : files) {
-            System.out.println("Gasit: " + f.getName() + " | isFile=" + f.isFile());
+            System.out.println(" Found: " + f.getName() + " | isFile=" + f.isFile());
 
             if (f.isFile() && f.getName().endsWith(".txt")) {
                 System.out.println("→ ADDED");
