@@ -19,7 +19,7 @@ public class ServerListener implements Runnable {
                           List<String> buffer,
                           boolean[] editAllowed,
                           boolean[] editResponseReceived,
-                          boolean[] fileLoaded,   // 👈 ADĂUGAT
+                          boolean[] fileLoaded, 
                           Object editLock) {
 
         this.in = in;
@@ -27,7 +27,7 @@ public class ServerListener implements Runnable {
         this.buffer = buffer;
         this.editAllowed = editAllowed;
         this.editResponseReceived = editResponseReceived;
-        this.fileLoaded = fileLoaded; // 👈 IMPORTANT
+        this.fileLoaded = fileLoaded;
         this.editLock = editLock;
     }
 
@@ -72,7 +72,7 @@ public class ServerListener implements Runnable {
 
                 // ================= EDIT RESPONSE =================
 
-                if (line.startsWith("ERROR: fisierul este deja editat")) {
+                if (line.startsWith("ERROR: file is already being edited")) {
                     synchronized (editLock) {
                         editAllowed[0] = false;
                         editResponseReceived[0] = true;
@@ -83,7 +83,7 @@ public class ServerListener implements Runnable {
                     continue;
                 }
 
-                else if (line.startsWith("SUCCESS: editare inceputa")) {
+                else if (line.startsWith("SUCCESS: editing started")) {
                     synchronized (editLock) {
                         editAllowed[0] = true;
                         editResponseReceived[0] = true;
@@ -91,7 +91,7 @@ public class ServerListener implements Runnable {
                     }
 
                     editContentMode = true;
-                    System.out.println("[SERVER] editare permisa");
+                    System.out.println("[SERVER] editing allowed");
                     continue;
                 }
 
@@ -107,15 +107,15 @@ public class ServerListener implements Runnable {
 
                 else if (line.startsWith("INFO: FILE_ADDED ")) {
                     String file = line.substring("INFO: FILE_ADDED ".length());
-                    System.out.println("[SERVER] Fișier nou: " + file);
+                    System.out.println("[SERVER] New file: " + file);
                     out.println("FILES"); 
                     continue;
                 }
 
                 else if (line.startsWith("INFO: FILE_REMOVED ")) {
                     String file = line.substring("INFO: FILE_REMOVED ".length());
-                    System.out.println("[SERVER] Fișier șters: " + file);
-                    out.println("FILES"); 
+                    System.out.println("[SERVER] File removed: " + file);
+                    out.println("LIST"); 
                     continue;
                 }
                 else if (line.startsWith("INFO:")) {
