@@ -19,7 +19,6 @@ At any given time, only one client can edit a file.
 - TCP Sockets
 - Concurrency (threads)
 - File I/O
-- Docker (for running the server)
 
 ---
 
@@ -106,15 +105,6 @@ java server.ServerMain
 ### 2. Start clients (in separate terminals)
 ```
 java client.ClientMain
-```
-
----
-
-## Running with Docker
-
-```
-docker build -t text-editor-server .
-docker run -p 1234:1234 text-editor-server
 ```
 
 ---
